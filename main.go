@@ -16,6 +16,12 @@ type userPassAuth struct {
 	Pass string
 }
 
+type components struct {
+	RedisConnection redis.Conn
+	RedisSchemeURL  *string
+	HTTPAddress     *string
+}
+
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	//enforce POST
 	if r.Method != "POST" {
@@ -33,13 +39,31 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 
 		if UnmarshalError != nil {
 			log.Println(UnmarshalError)
-		} else {
-			w.Write([]byte(userPass.User))
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid json."))
+
+			return
 		}
+
+		redisConnection := components.RedisConnection
+		redisUser, redisConnectionError := redisConnection.Do("GET", userPass.User)
+
+		if redisConnectionError != nil {
+			log.Println(redisConnectionError)
+			w.Write([]byte(redisConnectionError))
+
+			return
+		}
+
+		log.Println(redisUser)
+
+		defer redisConnection.Close()
+
+		//w.Write([]byte(userPass.User))
 	}
 }
 
-func setupRedis(RedisSchemeURL *string) (connection redis.Conn) {
+func setupRedis() {
 	connection, error := redis.DialURL(*RedisSchemeURL)
 	if error != nil {
 		log.Fatalln("Could not connect to REDIS:", error)
@@ -47,21 +71,24 @@ func setupRedis(RedisSchemeURL *string) (connection redis.Conn) {
 		fmt.Println("Connected to REDIS:", *RedisSchemeURL)
 	}
 
-	return connection
+	components.RedisConnection = connection
 }
 
-func setupFlags() (RedisSchemeURL *string, HTTPAddress *string) {
+func setupFlags(c components) {
 	RedisSchemeURL = flag.String("redis-url", "redis://@localhost:6379/0", "Url to connect to redis")
 	HTTPAddress = flag.String("http-address", ":8080", "Http address to bind to")
 
 	flag.Parse()
 
-	return RedisSchemeURL, HTTPAddress
+	c.RedisSchemeURL = RedisSchemeURL
+	c.HTTPAddress = HTTPAddress
 }
 
 func main() {
-	RedisSchemeURL, HTTPAddress := setupFlags()
-	redisConnection := setupRedis(RedisSchemeURL)
+	globalComponents := new(components)
+
+	setupFlags(*globalComponents)
+	setupRedis(*globalComponents)
 
 	http.HandleFunc("/auth", authHandler)
 	log.Fatalln(http.ListenAndServe(*HTTPAddress, nil))
