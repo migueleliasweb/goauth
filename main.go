@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -24,10 +25,10 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 
 	if bodyError != nil {
 		log.Fatalln(bodyError)
+	} else {
+		bodyJson := json.NewDecoder(bodyBytes).Decode()
+		w.Write(bodyBytes)
 	}
-
-	w.Write(bodyBytes)
-
 }
 
 func setupRedis(RedisSchemeURL *string) (connection redis.Conn) {
