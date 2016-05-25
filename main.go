@@ -5,16 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/garyburd/redigo/redis"
 )
 
-func fooHandler(w http.ResponseWriter, r *http.Request) {
-	os.Exit(1)
+func authHandler(w http.ResponseWriter, r *http.Request) {
 	//fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-	w.Write([]byte(r.URL.Path))
-	log.Panicln("BLURP")
+	w.Write([]byte(r.URL.Path + "FOO"))
 }
 
 func main() {
@@ -30,8 +27,7 @@ func main() {
 		fmt.Println("Connected to REDIS: ", *RedisSchemeURL)
 	}
 
-	httpServer := http.NewServeMux()
-	httpServer.HandleFunc("/foo/", fooHandler)
+	http.HandleFunc("/auth", authHandler)
 	log.Fatalln(http.ListenAndServe(*HTTPAddress, nil))
 
 	defer c.Close()
