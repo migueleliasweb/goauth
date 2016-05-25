@@ -11,10 +11,12 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+type userPassAuth struct {
+	User string
+	Pass string
+}
+
 func authHandler(w http.ResponseWriter, r *http.Request) {
-
-	//w.Write([]byte(r.URL.Path + "FOO"))
-
 	//enforce POST
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -26,8 +28,14 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	if bodyError != nil {
 		log.Fatalln(bodyError)
 	} else {
-		bodyJson := json.NewDecoder(bodyBytes).Decode()
-		w.Write(bodyBytes)
+		var userPass userPassAuth
+		UnmarshalError := json.Unmarshal(bodyBytes, &userPass)
+
+		if UnmarshalError != nil {
+			log.Println(UnmarshalError)
+		} else {
+			w.Write([]byte(userPass.User))
+		}
 	}
 }
 
