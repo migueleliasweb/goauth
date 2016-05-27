@@ -16,30 +16,64 @@ type userPassAuth struct {
 	Pass string
 }
 
-func authHandler(w http.ResponseWriter, r *http.Request) {
-	//enforce POST
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(http.StatusText(http.StatusMethodNotAllowed)))
+type _appContext struct {
+	redisConnection *redis.Conn
+}
+
+var appContext _appContext
+
+func authHandler(response http.ResponseWriter, request *http.Request) {
+	if request.Method != "POST" {
+		response.WriteHeader(http.StatusMethodNotAllowed)
+		response.Write([]byte(http.StatusText(http.StatusMethodNotAllowed)))
+
+		return
 	}
 
-	bodyBytes, bodyError := ioutil.ReadAll(r.Body)
+	bodyBytes, bodyError := ioutil.ReadAll(request.Body)
 
 	if bodyError != nil {
 		log.Fatalln(bodyError)
-	} else {
-		var userPass userPassAuth
-		UnmarshalError := json.Unmarshal(bodyBytes, &userPass)
+		response.WriteHeader(http.StatusBadRequest)
+		response.Write([]byte(http.StatusText(http.StatusBadRequest)))
 
-		if UnmarshalError != nil {
-			log.Println(UnmarshalError)
-		} else {
-			w.Write([]byte(userPass.User))
-		}
+		return
+	}
+
+	var userPass userPassAuth
+	unmarshalError := json.Unmarshal(bodyBytes, &userPass)
+
+	if unmarshalError != nil {
+		log.Fatalln(bodyError)
+		response.WriteHeader(http.StatusBadRequest)
+		response.Write([]byte(http.StatusText(http.StatusBadRequest)))
+
+		return
+	}
+
+	userHashMap, redisError := redis.StringMap((*appContext.redisConnection).Do("HGETALL", userPass.User))
+
+	if redisError != nil {
+		log.Fatalln(bodyError)
+		response.WriteHeader(http.StatusForbidden)
+		response.Write([]byte(http.StatusText(http.StatusForbidden)))
+
+		return
+	}
+
+	if userHashMap["password"] == userPass.Pass {
+		response.WriteHeader(http.StatusOK)
+		response.Write([]byte("You shall pass!"))
+	} else {
+		log.Fatalln(bodyError)
+		response.WriteHeader(http.StatusForbidden)
+		response.Write([]byte(http.StatusText(http.StatusForbidden)))
+
+		return
 	}
 }
 
-func setupRedis(RedisSchemeURL *string) (connection redis.Conn) {
+func setupRedis(RedisSchemeURL *string) {
 	connection, error := redis.DialURL(*RedisSchemeURL)
 	if error != nil {
 		log.Fatalln("Could not connect to REDIS:", error)
@@ -47,7 +81,7 @@ func setupRedis(RedisSchemeURL *string) (connection redis.Conn) {
 		fmt.Println("Connected to REDIS:", *RedisSchemeURL)
 	}
 
-	return connection
+	appContext.redisConnection = &connection
 }
 
 func setupFlags() (RedisSchemeURL *string, HTTPAddress *string) {
@@ -61,10 +95,9 @@ func setupFlags() (RedisSchemeURL *string, HTTPAddress *string) {
 
 func main() {
 	RedisSchemeURL, HTTPAddress := setupFlags()
-	redisConnection := setupRedis(RedisSchemeURL)
+
+	setupRedis(RedisSchemeURL)
 
 	http.HandleFunc("/auth", authHandler)
 	log.Fatalln(http.ListenAndServe(*HTTPAddress, nil))
-
-	defer redisConnection.Close()
 }
