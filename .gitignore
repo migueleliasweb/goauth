@@ -25,3 +25,6 @@ _testmain.go
 
 # Compiled project
 /main
+
+# Test files
+/post.json
