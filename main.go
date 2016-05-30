@@ -28,10 +28,7 @@ func authHandlerFunc(response http.ResponseWriter, request *http.Request, jsonPa
 
 func main() {
 	gorillaRouter := mux.NewRouter()
-	// Routes consist of a path and a handler function.
-
 	authHandler := &components.Middleware{CallbackHandler: authHandlerFunc}
-
 	gorillaRouter.Handle("/auth", authHandler).Methods("POST")
 
 	// Bind to a port and pass our router in
