@@ -1,15 +1,9 @@
 package main
 
 import (
-	// "encoding/json"
-	// "flag"
-	// "fmt"
-	// "io/ioutil"
-	"crypto/sha512"
+	"components"
 	"log"
 	"net/http"
-
-	"components"
 
 	// "github.com/garyburd/redigo/redis"
 
@@ -17,10 +11,19 @@ import (
 )
 
 func authHandlerFunc(response http.ResponseWriter, request *http.Request, jsonParams map[string]interface{}) {
-	encodedPassword := sha512.Sum512([]byte(jsonParams["username"].(string)))
+	//encodedPassword := sha512.Sum512([]byte(jsonParams["username"].(string)))
+
+	user, err := components.GetUser(jsonParams["username"].(string))
+
+	if err == nil {
+		response.Write([]byte(user.Name))
+	} else {
+		response.Write([]byte(err.Error()))
+	}
 
 	//convert encodedPassword to slice
-	response.Write(encodedPassword[:])
+	//response.Write(encodedPassword[:])
+
 }
 
 func main() {

@@ -13,11 +13,6 @@ type Middleware struct {
 }
 
 func (MiddleW *Middleware) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	// jsonMap := map[string]interface{}{
-	// 	"name": "Wednesday",
-	// 	"Age":  6,
-	// }
-
 	bodyBytes, bodyError := ioutil.ReadAll(request.Body)
 
 	if bodyError != nil {
