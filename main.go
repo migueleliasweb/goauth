@@ -5,6 +5,7 @@ import (
 	// "flag"
 	// "fmt"
 	// "io/ioutil"
+	"crypto/sha512"
 	"log"
 	"net/http"
 
@@ -16,7 +17,10 @@ import (
 )
 
 func authHandlerFunc(response http.ResponseWriter, request *http.Request, jsonParams map[string]interface{}) {
-	response.Write([]byte("Teste"))
+	encodedPassword := sha512.Sum512([]byte(jsonParams["username"].(string)))
+
+	//convert encodedPassword to slice
+	response.Write(encodedPassword[:])
 }
 
 func main() {

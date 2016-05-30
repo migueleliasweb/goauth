@@ -1,6 +1,11 @@
 package components
 
-import "net/http"
+import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
 
 //Middleware Struct to perform common tasks for all routes
 type Middleware struct {
@@ -8,13 +13,30 @@ type Middleware struct {
 }
 
 func (MiddleW *Middleware) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	jsonMap := map[string]interface{}{
-		"Name": "Wednesday",
-		"Age":  6,
-		"Parents": []interface{}{
-			"Gomez",
-			"Morticia",
-		},
+	// jsonMap := map[string]interface{}{
+	// 	"name": "Wednesday",
+	// 	"Age":  6,
+	// }
+
+	bodyBytes, bodyError := ioutil.ReadAll(request.Body)
+
+	if bodyError != nil {
+		log.Fatalln(bodyError)
+		response.WriteHeader(http.StatusBadRequest)
+		response.Write([]byte(http.StatusText(http.StatusBadRequest)))
+
+		return
+	}
+
+	var jsonMap map[string]interface{}
+	unmarshalError := json.Unmarshal(bodyBytes, &jsonMap)
+
+	if unmarshalError != nil {
+		log.Fatalln(bodyError)
+		response.WriteHeader(http.StatusBadRequest)
+		response.Write([]byte("Invalid body."))
+
+		return
 	}
 
 	MiddleW.CallbackHandler(response, request, jsonMap)
