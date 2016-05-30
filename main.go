@@ -8,24 +8,25 @@ import (
 	"log"
 	"net/http"
 
-	// "github.com/garyburd/redigo/redis"
-
 	"components"
+
+	// "github.com/garyburd/redigo/redis"
 
 	"github.com/gorilla/mux"
 )
 
-func yourHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
+func authHandlerFunc(response http.ResponseWriter, request *http.Request, jsonParams map[string]interface{}) {
+	response.Write([]byte("Teste"))
 }
 
 func main() {
-	a = components.Debug
-
-	r := mux.NewRouter()
+	gorillaRouter := mux.NewRouter()
 	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", yourHandler).Methods("POST")
+
+	authHandler := &components.Middleware{CallbackHandler: authHandlerFunc}
+
+	gorillaRouter.Handle("/auth", authHandler).Methods("POST")
 
 	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe(":8000", gorillaRouter))
 }

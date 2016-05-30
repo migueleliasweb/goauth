@@ -23,8 +23,16 @@ _testmain.go
 *.test
 *.prof
 
-# Compiled project
+# Compiled
 /main
+
+# ATOM/golang binaries
+/bin
+/pkg
+
+# Dependencies
+/src/*
+!/src/components
 
 # Test files
 /post.json
