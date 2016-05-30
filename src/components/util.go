@@ -16,7 +16,7 @@ func (MiddleW *Middleware) ServeHTTP(response http.ResponseWriter, request *http
 	bodyBytes, bodyError := ioutil.ReadAll(request.Body)
 
 	if bodyError != nil {
-		log.Fatalln(bodyError)
+		log.Println(bodyError)
 		response.WriteHeader(http.StatusBadRequest)
 		response.Write([]byte(http.StatusText(http.StatusBadRequest)))
 
@@ -27,7 +27,7 @@ func (MiddleW *Middleware) ServeHTTP(response http.ResponseWriter, request *http
 	unmarshalError := json.Unmarshal(bodyBytes, &jsonMap)
 
 	if unmarshalError != nil {
-		log.Fatalln(bodyError)
+		log.Println(bodyError)
 		response.WriteHeader(http.StatusBadRequest)
 		response.Write([]byte("Invalid body."))
 
