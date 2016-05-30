@@ -1,103 +1,39 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
-	"fmt"
-	"io/ioutil"
+	"components"
 	"log"
 	"net/http"
 
-	"github.com/garyburd/redigo/redis"
+	// "github.com/garyburd/redigo/redis"
+
+	"github.com/gorilla/mux"
 )
 
-type userPassAuth struct {
-	User string
-	Pass string
-}
+func authHandlerFunc(response http.ResponseWriter, request *http.Request, jsonParams map[string]interface{}) {
+	//encodedPassword := sha512.Sum512([]byte(jsonParams["username"].(string)))
 
-type _appContext struct {
-	redisConnection *redis.Conn
-}
+	user, err := components.GetUser(jsonParams["username"].(string))
 
-var appContext _appContext
-
-func authHandler(response http.ResponseWriter, request *http.Request) {
-	if request.Method != "POST" {
-		response.WriteHeader(http.StatusMethodNotAllowed)
-		response.Write([]byte(http.StatusText(http.StatusMethodNotAllowed)))
-
-		return
-	}
-
-	bodyBytes, bodyError := ioutil.ReadAll(request.Body)
-
-	if bodyError != nil {
-		log.Fatalln(bodyError)
-		response.WriteHeader(http.StatusBadRequest)
-		response.Write([]byte(http.StatusText(http.StatusBadRequest)))
-
-		return
-	}
-
-	var userPass userPassAuth
-	unmarshalError := json.Unmarshal(bodyBytes, &userPass)
-
-	if unmarshalError != nil {
-		log.Fatalln(bodyError)
-		response.WriteHeader(http.StatusBadRequest)
-		response.Write([]byte(http.StatusText(http.StatusBadRequest)))
-
-		return
-	}
-
-	userHashMap, redisError := redis.StringMap((*appContext.redisConnection).Do("HGETALL", userPass.User))
-
-	if redisError != nil {
-		log.Fatalln(bodyError)
-		response.WriteHeader(http.StatusForbidden)
-		response.Write([]byte(http.StatusText(http.StatusForbidden)))
-
-		return
-	}
-
-	if userHashMap["password"] == userPass.Pass {
-		response.WriteHeader(http.StatusOK)
-		response.Write([]byte("You shall pass!"))
+	if err == nil {
+		response.Write([]byte(user.Name))
 	} else {
-		log.Fatalln(bodyError)
-		response.WriteHeader(http.StatusForbidden)
-		response.Write([]byte(http.StatusText(http.StatusForbidden)))
-
-		return
-	}
-}
-
-func setupRedis(RedisSchemeURL *string) {
-	connection, error := redis.DialURL(*RedisSchemeURL)
-	if error != nil {
-		log.Fatalln("Could not connect to REDIS:", error)
-	} else {
-		fmt.Println("Connected to REDIS:", *RedisSchemeURL)
+		response.Write([]byte(err.Error()))
 	}
 
-	appContext.redisConnection = &connection
-}
+	//convert encodedPassword to slice
+	//response.Write(encodedPassword[:])
 
-func setupFlags() (RedisSchemeURL *string, HTTPAddress *string) {
-	RedisSchemeURL = flag.String("redis-url", "redis://@localhost:6379/0", "Url to connect to redis")
-	HTTPAddress = flag.String("http-address", ":8080", "Http address to bind to")
-
-	flag.Parse()
-
-	return RedisSchemeURL, HTTPAddress
 }
 
 func main() {
-	RedisSchemeURL, HTTPAddress := setupFlags()
+	gorillaRouter := mux.NewRouter()
+	// Routes consist of a path and a handler function.
 
-	setupRedis(RedisSchemeURL)
+	authHandler := &components.Middleware{CallbackHandler: authHandlerFunc}
 
-	http.HandleFunc("/auth", authHandler)
-	log.Fatalln(http.ListenAndServe(*HTTPAddress, nil))
+	gorillaRouter.Handle("/auth", authHandler).Methods("POST")
+
+	// Bind to a port and pass our router in
+	log.Fatal(http.ListenAndServe(":8000", gorillaRouter))
 }
