@@ -9,7 +9,7 @@ import (
 
 //Middleware Struct to perform common tasks for all routes
 type Middleware struct {
-	CallbackHandler func(http.ResponseWriter, *http.Request, map[string]interface{})
+	//CallbackHandler func(http.ResponseWriter, *http.Request, map[string]interface{})
 }
 
 func (MiddleW *Middleware) ServeHTTP(response http.ResponseWriter, request *http.Request) {
