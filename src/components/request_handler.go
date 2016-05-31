@@ -3,6 +3,7 @@ package components
 import (
 	"crypto/sha512"
 	"encoding/hex"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -11,9 +12,13 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+//AccessToken Representation for the return of AuthHandler
+type AccessToken struct {
+	AccessToken string
+}
+
 //AuthHandler Handles authorization
 func AuthHandler(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params, jsonParams map[string]interface{}) {
-
 	if username, usernameExists := jsonParams["username"]; usernameExists {
 		if _, passwordExists := jsonParams["password"]; passwordExists {
 
@@ -39,6 +44,8 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 				tokenString, tokenErr := JWTToken.SignedString([]byte("asdasdasd"))
 
 				if tokenErr == nil {
+					tokenString, _ := json.Marshal(AccessToken{AccessToken: tokenString})
+					response.WriteHeader(http.StatusOK)
 					response.Write([]byte(tokenString))
 				} else {
 					response.WriteHeader(http.StatusInternalServerError)
