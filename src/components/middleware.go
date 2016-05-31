@@ -5,34 +5,47 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
-//Middleware Struct to perform common tasks for all routes
-type Middleware struct {
-	//CallbackHandler func(http.ResponseWriter, *http.Request, map[string]interface{})
-}
+//GoAuthHandler Type for using to route callbacks
+type GoAuthHandler func(
+	response http.ResponseWriter,
+	request *http.Request,
+	routeParams httprouter.Params,
+	jsonParams map[string]interface{})
 
-func (MiddleW *Middleware) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	bodyBytes, bodyError := ioutil.ReadAll(request.Body)
+//GoAuthMiddleWare Default Middleware
+func GoAuthMiddleWare(CH GoAuthHandler) httprouter.Handle {
+	return func(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
 
-	if bodyError != nil {
-		log.Println(bodyError)
-		response.WriteHeader(http.StatusBadRequest)
-		response.Write([]byte(http.StatusText(http.StatusBadRequest)))
+		bodyBytes, bodyError := ioutil.ReadAll(request.Body)
 
-		return
+		if bodyError != nil {
+			log.Println(bodyError)
+			response.WriteHeader(http.StatusBadRequest)
+			response.Write([]byte(http.StatusText(http.StatusBadRequest)))
+
+			return
+		}
+
+		var jsonMap map[string]interface{}
+
+		if len(bodyBytes) > 0 {
+			log.Println("Unmarshaling body")
+
+			unmarshalError := json.Unmarshal(bodyBytes, &jsonMap)
+
+			if unmarshalError != nil {
+				log.Println(bodyError)
+				response.WriteHeader(http.StatusBadRequest)
+				response.Write([]byte("Invalid body."))
+
+				return
+			}
+		}
+
+		CH(response, request, routeParams, jsonMap)
 	}
-
-	var jsonMap map[string]interface{}
-	unmarshalError := json.Unmarshal(bodyBytes, &jsonMap)
-
-	if unmarshalError != nil {
-		log.Println(bodyError)
-		response.WriteHeader(http.StatusBadRequest)
-		response.Write([]byte("Invalid body."))
-
-		return
-	}
-
-	MiddleW.CallbackHandler(response, request, jsonMap)
 }

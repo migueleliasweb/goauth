@@ -13,8 +13,7 @@ import (
 func main() {
 	router := httprouter.New()
 
-	router.POST("/auth", components.AuthHandler{})
+	router.POST("/auth", components.GoAuthMiddleWare(components.AuthHandler))
 
-	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
