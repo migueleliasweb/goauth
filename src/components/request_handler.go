@@ -4,7 +4,6 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -57,7 +56,6 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 		}
 	}
 
-	log.Println("Else")
 	response.WriteHeader(http.StatusBadRequest)
 	response.Write([]byte(http.StatusText(http.StatusBadRequest)))
 }
