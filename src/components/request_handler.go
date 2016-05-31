@@ -2,25 +2,47 @@ package components
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 )
 
 //AuthHandler Handles authorization
 func AuthHandler(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params, jsonParams map[string]interface{}) {
-	//encodedPassword := sha512.Sum512([]byte(jsonParams["username"].(string)))
 
 	if username, usernameExists := jsonParams["username"]; usernameExists {
-		if _, passwordExists := jsonParams["username"]; passwordExists {
-			user, err := GetUser(username.(string))
+		if _, passwordExists := jsonParams["password"]; passwordExists {
 
-			if err == nil {
-				response.Write([]byte(user.Password))
-			} else {
-				response.Write([]byte(err.Error()))
+			user, userErr := GetUser(username.(string))
+
+			if userErr != nil {
+				response.WriteHeader(http.StatusInternalServerError)
+				response.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+
+				return
 			}
 
-			return
+			//encodedPassword := sha512.Sum512([]byte(jsonParams["password"].(string)))
+
+			if true {
+				JWTToken := jwt.New(jwt.SigningMethodHS256)
+
+				JWTToken.Claims["iat"] = time.Now()
+				JWTToken.Claims["exp"] = time.Now().Add(time.Hour * 2)
+				JWTToken.Claims["identity"] = user.Hash
+
+				tokenString, tokenErr := JWTToken.SignedString([]byte("asdasdasd"))
+
+				if tokenErr == nil {
+					response.Write([]byte(tokenString))
+				} else {
+					response.WriteHeader(http.StatusInternalServerError)
+					response.Write([]byte(tokenErr.Error()))
+				}
+
+				return
+			}
 		}
 	}
 

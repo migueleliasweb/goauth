@@ -33,8 +33,6 @@ func GoAuthMiddleWare(CH GoAuthHandler) httprouter.Handle {
 		var jsonMap map[string]interface{}
 
 		if len(bodyBytes) > 0 {
-			log.Println("Unmarshaling body")
-
 			unmarshalError := json.Unmarshal(bodyBytes, &jsonMap)
 
 			if unmarshalError != nil {
