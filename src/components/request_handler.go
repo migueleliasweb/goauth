@@ -1,6 +1,9 @@
 package components
 
 import (
+	"crypto/sha512"
+	"encoding/hex"
+	"log"
 	"net/http"
 	"time"
 
@@ -23,9 +26,10 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 				return
 			}
 
-			//encodedPassword := sha512.Sum512([]byte(jsonParams["password"].(string)))
+			sha512Password := sha512.Sum512([]byte(jsonParams["password"].(string)))
+			hexSha512Password := hex.EncodeToString(sha512Password[:])
 
-			if true {
+			if hexSha512Password == user.Password {
 				JWTToken := jwt.New(jwt.SigningMethodHS256)
 
 				JWTToken.Claims["iat"] = time.Now()
@@ -46,6 +50,7 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 		}
 	}
 
+	log.Println("Else")
 	response.WriteHeader(http.StatusBadRequest)
 	response.Write([]byte(http.StatusText(http.StatusBadRequest)))
 }
