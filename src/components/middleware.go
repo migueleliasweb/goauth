@@ -3,7 +3,6 @@ package components
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -23,9 +22,10 @@ func GoAuthMiddleWare(CH GoAuthHandler) httprouter.Handle {
 		bodyBytes, bodyError := ioutil.ReadAll(request.Body)
 
 		if bodyError != nil {
-			log.Println(bodyError)
-			response.WriteHeader(http.StatusBadRequest)
-			response.Write([]byte(http.StatusText(http.StatusBadRequest)))
+			JSONError(
+				response,
+				"Could not read request body.",
+				http.StatusBadRequest)
 
 			return
 		}
@@ -36,9 +36,10 @@ func GoAuthMiddleWare(CH GoAuthHandler) httprouter.Handle {
 			unmarshalError := json.Unmarshal(bodyBytes, &jsonMap)
 
 			if unmarshalError != nil {
-				log.Println(bodyError)
-				response.WriteHeader(http.StatusBadRequest)
-				response.Write([]byte("Invalid body."))
+				JSONError(
+					response,
+					"Invalid json body.",
+					http.StatusBadRequest)
 
 				return
 			}

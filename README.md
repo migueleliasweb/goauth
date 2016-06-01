@@ -1,10 +1,7 @@
-# TO RUN:
+# TO DEVELOP:
 
 ```
-$ ./gorun
-```
-
-# TO DEVELOP WITH ATOM:
-```
-$ ./atom
+$ ./goenv atom
+$ ./goenv go run main.go
+$ ./goenv go build main.go
 ```

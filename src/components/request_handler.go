@@ -24,8 +24,10 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 			user, userErr := GetUser(username.(string))
 
 			if userErr != nil {
-				response.WriteHeader(http.StatusInternalServerError)
-				response.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+				JSONError(
+					response,
+					"User and/or password does not match.",
+					http.StatusBadRequest)
 
 				return
 			}
@@ -40,22 +42,31 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 				JWTToken.Claims["exp"] = time.Now().Add(time.Hour * 2)
 				JWTToken.Claims["identity"] = user.Hash
 
-				tokenString, tokenErr := JWTToken.SignedString([]byte("asdasdasd"))
+				tokenString, tokenErr := JWTToken.SignedString([]byte(JWTSecret))
 
 				if tokenErr == nil {
 					tokenString, _ := json.Marshal(AccessToken{AccessToken: tokenString})
 					response.WriteHeader(http.StatusOK)
 					response.Write([]byte(tokenString))
 				} else {
-					response.WriteHeader(http.StatusInternalServerError)
-					response.Write([]byte(tokenErr.Error()))
+					JSONError(
+						response,
+						"Could not create Json Web Token",
+						http.StatusInternalServerError)
 				}
-
-				return
+			} else {
+				JSONError(
+					response,
+					"User and/or password does not match.",
+					http.StatusBadRequest)
 			}
+
+			return
 		}
 	}
 
-	response.WriteHeader(http.StatusBadRequest)
-	response.Write([]byte(http.StatusText(http.StatusBadRequest)))
+	JSONError(
+		response,
+		"Something went wrong.",
+		http.StatusInternalServerError)
 }
