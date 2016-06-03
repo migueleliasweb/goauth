@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 )
 
 //AccessToken Representation for the return of AuthHandler
 type AccessToken struct {
-	AccessToken string
+	AccessToken string `json:"access_token"`
 }
 
 //AuthHandler Handles authorization
@@ -36,13 +35,7 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 			hexSha512Password := hex.EncodeToString(sha512Password[:])
 
 			if hexSha512Password == user.Password {
-				JWTToken := jwt.New(jwt.SigningMethodHS256)
-
-				JWTToken.Claims["iat"] = time.Now()
-				JWTToken.Claims["exp"] = time.Now().Add(time.Hour * 2)
-				JWTToken.Claims["identity"] = user.Hash
-
-				tokenString, tokenErr := JWTToken.SignedString([]byte(JWTSecret))
+				tokenString, tokenErr := GenerateJWTToken(user.Username, time.Hour*2)
 
 				if tokenErr == nil {
 					tokenString, _ := json.Marshal(AccessToken{AccessToken: tokenString})

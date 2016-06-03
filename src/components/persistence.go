@@ -16,7 +16,7 @@ type Permission struct {
 //User Struct defining user's fields
 type User struct {
 	Hash        string
-	Name        string
+	Username    string
 	Password    string
 	Permissions []Permission
 }
@@ -33,7 +33,7 @@ func init() {
 
 	inMemoryDatabase.Users["miguel"] = User{
 		Hash:        "ONPHhxYTRuXYZTFNPTdG",
-		Name:        "miguel",
+		Username:    "miguel",
 		Password:    "1ea3aa8cbcf860693559a55b36f041a879a3b2e62842ff49c4762ce860b98999b3d42b9ce3c7153bbe3b84f51950fe3b174b9db3f84d1f29039f901f69c6899f",
 		Permissions: _permissions,
 	}
