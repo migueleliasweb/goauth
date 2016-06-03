@@ -54,19 +54,16 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 						"Could not create Json Web Token",
 						http.StatusInternalServerError)
 				}
-			} else {
-				JSONError(
-					response,
-					"User and/or password does not match.",
-					http.StatusBadRequest)
-			}
 
-			return
+				return
+			}
 		}
 	}
 
 	JSONError(
 		response,
-		"Something went wrong.",
-		http.StatusInternalServerError)
+		"User and/or password does not match.",
+		http.StatusBadRequest)
+
+	return
 }

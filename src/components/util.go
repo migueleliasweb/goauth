@@ -6,7 +6,7 @@ import (
 )
 
 type jsonError struct {
-	Error string
+	Error string `json:"error"`
 }
 
 //JSONError Helper function to return restful errors
