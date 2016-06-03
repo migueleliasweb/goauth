@@ -60,3 +60,8 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 
 	return
 }
+
+//GetPermissionHandler Returns all associated permissons of the user
+func GetPermissionHandler(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params, jsonParams map[string]interface{}) {
+
+}

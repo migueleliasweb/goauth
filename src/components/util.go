@@ -12,6 +12,11 @@ type jsonError struct {
 	Error string `json:"error"`
 }
 
+//JWTToken Specification struct for DecodeJWTToken()
+type JWTToken struct {
+	subject string
+}
+
 //JSONError Helper function to return restful errors
 func JSONError(response http.ResponseWriter, errorString string, statusCode int) {
 
@@ -31,3 +36,5 @@ func GenerateJWTToken(subject string, extraTime time.Duration) (tokenString stri
 
 	return JWTToken.SignedString([]byte(JWTSecret))
 }
+
+func DecodeJWTToken(encodedToken string)
