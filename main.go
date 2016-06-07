@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	//DB := components.SetupTestDB()
+
 	router := httprouter.New()
 
 	router.POST("/auth", components.GoAuthMiddleWare(components.AuthHandler))

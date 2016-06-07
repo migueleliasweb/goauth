@@ -2,6 +2,13 @@ package components
 
 import "errors"
 
+//GoAuthDB Database interface
+type GoAuthDB interface {
+	AddPermisson(*User, Permission) (*User, error)
+	GetEncodedPassword(username *string) (password string, err error)
+	GetUser(username string) *User
+}
+
 //InMemoryDatabase "De facto" where to search for information
 type InMemoryDatabase struct {
 	Permissions map[string]*Permission
@@ -57,55 +64,5 @@ func (DB *InMemoryDatabase) GetEncodedPassword(username *string) (password strin
 	return "", errors.New("User not found.")
 }
 
-//DB The in-memory database
-var DB InMemoryDatabase
-
-//init For test purposes
-func init() {
-	_permissions := make(map[string]*Permission)
-	_permissions["admin"] = &Permission{Name: "admin"}
-
-	_users := make(map[string]User, 1)
-	_users["miguel"] = User{
-		Username:    "miguel",
-		Password:    "1ea3aa8cbcf860693559a55b36f041a879a3b2e62842ff49c4762ce860b98999b3d42b9ce3c7153bbe3b84f51950fe3b174b9db3f84d1f29039f901f69c6899f",
-		Permissions: _permissions,
-	}
-
-	//DB
-	DB = InMemoryDatabase{
-		Users:       _users,
-		Permissions: _permissions,
-	}
-}
-
-//
-// //GetUser Get the user from DB
-// func GetUser(username string) (user User, err error) {
-// 	if user, userExists := inMemoryDatabase.Users[username]; userExists {
-// 		return user, nil
-// 	}
-//
-// 	return User{}, errors.New("User not found.")
-// }
-//
-// //AddPermisson Adds a persmisson to the given user
-// func AddPermisson(username string, perm Permission) (user User, err error) {
-// 	if user, userExists := inMemoryDatabase.Users[username]; userExists {
-// 		if _perm, _ := inMemoryDatabase.Permissions[perm.Name]; _ {
-// 			inMemoryDatabase.Users[username] = append(*user.Permissions, perm)
-// 		}
-// 	}
-//
-// 	return User{}, errors.New("User not found.")
-// }
-//
-// //GetEncodedPassword Returns the encoded user password from DB
-// func GetEncodedPassword(username *string) (password string, err error) {
-//
-// 	if user, userExists := inMemoryDatabase.Users[*username]; userExists {
-// 		return user.Password, nil
-// 	}
-//
-// 	return "", errors.New("User not found.")
-// }
+//DB Instance of GoAuthDB
+var DB GoAuthDB

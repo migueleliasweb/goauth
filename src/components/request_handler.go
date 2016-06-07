@@ -62,6 +62,6 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 }
 
 //PermissionHandler Adds a permisson to a given user
-func PermissionPUTHandler(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params, jsonParams map[string]interface{}) {
-
-}
+// func PermissionPUTHandler(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params, jsonParams map[string]interface{}) {
+//
+// }

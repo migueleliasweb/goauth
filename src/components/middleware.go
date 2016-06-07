@@ -13,7 +13,8 @@ type GoAuthHandler func(
 	response http.ResponseWriter,
 	request *http.Request,
 	routeParams httprouter.Params,
-	jsonParams map[string]interface{})
+	jsonParams map[string]interface{},
+)
 
 //GoAuthMiddleWare Default Middleware
 func GoAuthMiddleWare(CH GoAuthHandler) httprouter.Handle {
