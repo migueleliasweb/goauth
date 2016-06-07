@@ -20,9 +20,9 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 	if username, usernameExists := jsonParams["username"]; usernameExists {
 		if _, passwordExists := jsonParams["password"]; passwordExists {
 
-			user, userErr := GetUser(username.(string))
+			user := DB.GetUser(username.(string))
 
-			if userErr != nil {
+			if user != nil {
 				JSONError(
 					response,
 					"User and/or password does not match.",
@@ -59,4 +59,9 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 		http.StatusBadRequest)
 
 	return
+}
+
+//PermissionHandler Adds a permisson to a given user
+func PermissionPUTHandler(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params, jsonParams map[string]interface{}) {
+
 }

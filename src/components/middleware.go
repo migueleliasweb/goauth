@@ -30,6 +30,15 @@ func GoAuthMiddleWare(CH GoAuthHandler) httprouter.Handle {
 			return
 		}
 
+		if request.Header.Get("Content-Type") != "application/json" {
+			JSONError(
+				response,
+				"Invalid content-type header.",
+				http.StatusBadRequest)
+
+			return
+		}
+
 		var jsonMap map[string]interface{}
 
 		if len(bodyBytes) > 0 {
