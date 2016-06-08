@@ -1,6 +1,7 @@
 package components
 
 import (
+	"bytes"
 	"log"
 	"os"
 
@@ -10,33 +11,55 @@ import (
 const userPreffix = "user_"
 
 var (
-	//RedisWrap Redis instance
-	RedisWrap RedisWrapper
+	//Cache Redis instance
+	Cache CacheWrapper
 )
 
-//RedisWrapper "De facto" where to search for information
-type RedisWrapper struct {
+//CacheWrapper "De facto" where to search for information
+type CacheWrapper struct {
 	redisConn redis.Conn
 	redisErr  error
 }
 
+//usernameKeyHelper Returns the cache key for the given user
+func usernameKeyHelper(username *string) string {
+	var buffer bytes.Buffer
+
+	buffer.WriteString(userPreffix)
+	buffer.WriteString(*username)
+
+	return buffer.String()
+}
+
 //UserExists Returns true if a user with the given name exists
-func (RWrap *RedisWrapper) UserExists(username string) bool {
-	userExists, err := redis.Bool(RWrap.redisConn.Do("EXISTS", userPreffix+username))
+func (CW *CacheWrapper) UserExists(username *string) bool {
+	userExists, err := redis.Bool(CW.redisConn.Do("EXISTS", usernameKeyHelper(username)))
 
 	if err != nil {
-		log.Println("Could not check user" + username + " for existance.")
+		log.Println("Could not check user" + *username + " for existance.")
 		log.Fatalln(err)
 	}
 
 	return userExists
 }
 
-func init() {
-	RedisWrap := new(RedisWrapper)
-	RedisWrap.redisConn, RedisWrap.redisErr = redis.DialURL(os.Getenv("REDIS_URL"))
+//GetEncodedPassword Returns the encoded password for the given username
+func (CW *CacheWrapper) GetEncodedPassword(username *string) *string {
+	password, err := redis.String(CW.redisConn.Do("HGET", usernameKeyHelper(username), "password"))
 
-	if RedisWrap.redisErr != nil {
+	if err != nil {
+		log.Println("Could not fetch user's password")
+		log.Fatalln(err)
+	}
+
+	return &password
+}
+
+func init() {
+	Cache := new(CacheWrapper)
+	Cache.redisConn, Cache.redisErr = redis.DialURL(os.Getenv("REDIS_URL"))
+
+	if Cache.redisErr != nil {
 		log.Fatalln("Could not connect to redis.")
 	}
 

@@ -18,11 +18,12 @@ type AccessToken struct {
 //AuthHandler Handles authorization
 func AuthHandler(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params, jsonParams map[string]interface{}) {
 	if username, usernameExists := jsonParams["username"]; usernameExists {
+
+		usernameStr := username.(string)
+
 		if _, passwordExists := jsonParams["password"]; passwordExists {
 
-			user := DB.GetUser(username.(string))
-
-			if user != nil {
+			if !Cache.UserExists(&usernameStr) {
 				JSONError(
 					response,
 					"User and/or password does not match.",
@@ -34,8 +35,8 @@ func AuthHandler(response http.ResponseWriter, request *http.Request, routeParam
 			sha512Password := sha512.Sum512([]byte(jsonParams["password"].(string)))
 			hexSha512Password := hex.EncodeToString(sha512Password[:])
 
-			if hexSha512Password == user.Password {
-				tokenString, tokenErr := GenerateJWTToken(user.Username, time.Hour*2)
+			if hexSha512Password == *Cache.GetEncodedPassword(&usernameStr) {
+				tokenString, tokenErr := GenerateJWTToken(usernameStr, time.Hour*2)
 
 				if tokenErr == nil {
 					tokenString, _ := json.Marshal(AccessToken{AccessToken: tokenString})
