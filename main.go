@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	// "github.com/garyburd/redigo/redis"
-
 	"github.com/julienschmidt/httprouter"
 )
 
